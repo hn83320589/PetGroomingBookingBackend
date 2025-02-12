@@ -13,7 +13,7 @@ class PetTypeController extends Controller
     public function index()
     {
         $petTypes = PetType::all();
-        $petTypes->load('serviceDescriptions');
+        $petTypes->load('petTypePrices');
 
         return response()->json($petTypes);
     }

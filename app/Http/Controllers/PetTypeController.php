@@ -14,6 +14,15 @@ class PetTypeController extends Controller
     {
         $petTypes = PetType::all();
         $petTypes->load('petTypePrices');
+        foreach ($petTypes as $petType) {
+            $petType->extra_price = $petType->petTypePrices->mapWithKeys(function ($petTypePrice) {
+                // 將等級與加購價組成陣列，等級為 key，加購價為 value
+                return [$petTypePrice->tier_level => $petTypePrice->extra_price];
+            })->toArray(); // 確保結果是單一的陣列
+
+            // 移除不需要的欄位
+            unset($petType->petTypePrices);
+        }
 
         return response()->json($petTypes);
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -20,7 +21,11 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notice whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class Notice extends Model
-{
+class Notice extends Model {
+    use HasFactory;
+
+    /**
+     * @var array
+     */
     protected $hidden = ['created_at', 'updated_at'];
 }

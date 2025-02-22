@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property string $slot_date 日期
@@ -22,7 +23,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyTimeSlot whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class DailyTimeSlot extends Model
-{
+class DailyTimeSlot extends Model {
+    use HasFactory;
+
     //
 }

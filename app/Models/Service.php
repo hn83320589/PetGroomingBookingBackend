@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -28,37 +29,53 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Service whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class Service extends Model
-{
+class Service extends Model {
+    use HasFactory;
+
+    /**
+     * @var array
+     */
     protected $hidden = ['created_at', 'updated_at'];
 
-    public function petAppointments()
-    {
+    /**
+     * @return mixed
+     */
+    public function petAppointments() {
         return $this->hasMany(PetAppointment::class, 'service_id', 'id');
     }
 
-    public function petTypePrices()
-    {
+    /**
+     * @return mixed
+     */
+    public function petTypePrices() {
         return $this->hasMany(PetTypePrice::class, 'service_id', 'id');
     }
 
-    public function petType()
-    {
+    /**
+     * @return mixed
+     */
+    public function petType() {
         return $this->hasManyThrough(PetType::class, PetTypePrice::class, 'service_id', 'id', 'id', 'pet_type_id');
     }
 
-    public function userTimeSlotAssignments()
-    {
+    /**
+     * @return mixed
+     */
+    public function userTimeSlotAssignments() {
         return $this->hasManyThrough(UserTimeSlotAssignment::class, PetAppointment::class, 'service_id', 'id', 'id', 'user_time_slot_assignments_id');
     }
 
-    public function pets()
-    {
+    /**
+     * @return mixed
+     */
+    public function pets() {
         return $this->hasManyThrough(Pet::class, PetAppointment::class, 'service_id', 'id', 'id', 'pet_id');
     }
 
-    public function serviceDescriptions()
-    {
+    /**
+     * @return mixed
+     */
+    public function serviceDescriptions() {
         return $this->hasMany(ServiceDescription::class, 'service_id', 'id');
     }
 }

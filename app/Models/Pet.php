@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -30,30 +31,41 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Pet whereWeight($value)
  * @mixin \Eloquent
  */
-class Pet extends Model
-{
-    public function petType()
-    {
+class Pet extends Model {
+    use HasFactory;
+
+    /**
+     * @return mixed
+     */
+    public function petType() {
         return $this->belongsTo(PetType::class, 'pet_type_id', 'id');
     }
 
-    public function petParent()
-    {
+    /**
+     * @return mixed
+     */
+    public function petParent() {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function petAppointments()
-    {
+    /**
+     * @return mixed
+     */
+    public function petAppointments() {
         return $this->hasMany(PetAppointment::class, 'pet_id', 'id');
     }
 
-    public function service()
-    {
+    /**
+     * @return mixed
+     */
+    public function service() {
         return $this->hasManyThrough(Service::class, PetAppointment::class, 'pet_id', 'id', 'id', 'service_id');
     }
 
-    public function userTimeSlotAssignments()
-    {
+    /**
+     * @return mixed
+     */
+    public function userTimeSlotAssignments() {
         return $this->hasManyThrough(UserTimeSlotAssignment::class, PetAppointment::class, 'pet_id', 'id', 'id', 'user_time_slot_assignments_id');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -22,20 +23,28 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetType whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class PetType extends Model
-{
+class PetType extends Model {
+    use HasFactory;
+
+    /**
+     * @var array
+     */
     protected $hidden = [
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
-    public function pets()
-    {
+    /**
+     * @return mixed
+     */
+    public function pets() {
         return $this->hasMany(Pet::class, 'pet_type_id', 'id');
     }
 
-    public function petTypePrices()
-    {
+    /**
+     * @return mixed
+     */
+    public function petTypePrices() {
         return $this->hasMany(PetTypePrice::class, 'pet_type_id', 'id')->orderBy('tier_level');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -22,7 +23,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserTimeSlotAssignment whereUserId($value)
  * @mixin \Eloquent
  */
-class UserTimeSlotAssignment extends Model
-{
+class UserTimeSlotAssignment extends Model {
+    use HasFactory;
+
     //
 }

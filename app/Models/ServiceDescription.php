@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -25,12 +26,18 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ServiceDescription whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class ServiceDescription extends Model
-{
+class ServiceDescription extends Model {
+    use HasFactory;
+
+    /**
+     * @var array
+     */
     protected $hidden = ['created_at', 'updated_at'];
 
-    public function service()
-    {
+    /**
+     * @return mixed
+     */
+    public function service() {
         return $this->belongsTo(Service::class, 'service_id', 'id');
     }
 }

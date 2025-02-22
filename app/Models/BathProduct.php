@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  *
@@ -24,7 +25,11 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BathProduct whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class BathProduct extends Model
-{
+class BathProduct extends Model {
+    use HasFactory;
+
+    /**
+     * @var array
+     */
     protected $hidden = ['created_at', 'updated_at'];
 }

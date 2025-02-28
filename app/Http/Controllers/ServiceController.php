@@ -8,6 +8,7 @@ use App\Models\BathProduct;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller {
+    
     /**
      * Display a listing of the resource.
      */

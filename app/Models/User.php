@@ -44,7 +44,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @mixin \Eloquent
  */
-class User extends Authenticatable {
+class User extends Authenticatable
+{
     /**
      * @use HasFactory<\Database\Factories\UserFactory>
      */
@@ -70,6 +71,22 @@ class User extends Authenticatable {
         'password',
         'remember_token',
     ];
+
+    /**
+     * @return mixed
+     */
+    public function UserTimeSlotAssignments()
+    {
+        return $this->hasMany(UserTimeSlotAssignment::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return mixed
+     */
+    public function dailyTimeSlots()
+    {
+        return $this->hasManyThrough(DailyTimeSlot::class, UserTimeSlotAssignment::class, 'user_id', 'id', 'id', 'daily_time_slot_id');
+    }
 
     /**
      * Get the attributes that should be cast.

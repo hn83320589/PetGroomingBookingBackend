@@ -6,7 +6,7 @@ use App\Models\PetType;
 use Illuminate\Http\Request;
 
 class PetTypeController extends Controller {
-// 在類別中加入異常處理方法
+    
     /**
      * @param $e
      */

@@ -26,5 +26,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class UserTimeSlotAssignment extends Model {
     use HasFactory;
 
-    //
+    protected $guarded = [];
+
+    public function dailyTimeSlot()
+    {
+        return $this->belongsTo(DailyTimeSlot::class, 'daily_time_slot_id', 'id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 }

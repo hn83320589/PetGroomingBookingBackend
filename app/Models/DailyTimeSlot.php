@@ -23,8 +23,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyTimeSlot whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class DailyTimeSlot extends Model {
+class DailyTimeSlot extends Model
+{
     use HasFactory;
 
-    //
+    protected $gruard = [];
+
+    public function users()
+    {
+        return $this->hasManyThrough(User::class, UserTimeSlotAssignment::class, 'daily_time_slot_id', 'id', 'id', 'user_id');
+    }
+
+    public function UserTimeSlotAssignments()
+    {
+        return $this->hasMany(UserTimeSlotAssignment::class, 'daily_time_slot_id', 'id');
+    }
+
+    public function petAppointmentDetails()
+    {
+        return $this->hasManyThrough(PetAppointmentDetail::class, UserTimeSlotAssignment::class, 'daily_time_slot_id', 'user_time_slot_assignment_id', 'id', 'id');
+    }
 }

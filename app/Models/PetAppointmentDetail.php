@@ -23,6 +23,29 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetAppointmentDetail whereUserTimeSlotAssignmentId($value)
  * @mixin \Eloquent
  */
-class PetAppointmentDetail extends Model {
+class PetAppointmentDetail extends Model
+{
     use HasFactory;
+
+    protected $guarded = [];
+
+    public function petAppointment()
+    {
+        return $this->belongsTo(PetAppointment::class, 'pet_appointment_id', 'id');
+    }
+
+    public function userTimeSlotAssignment()
+    {
+        return $this->belongsTo(UserTimeSlotAssignment::class, 'user_time_slot_assignment_id', 'id');
+    }
+
+    public function dailyTimeSlots()
+    {
+        return $this->hasManyThrough(DailyTimeSlot::class, UserTimeSlotAssignment::class, 'id', 'id', 'user_time_slot_assignment_id', 'daily_time_slot_id');
+    }
+
+    public function users()
+    {
+        return $this->hasManyThrough(User::class, UserTimeSlotAssignment::class, 'id', 'id', 'user_time_slot_assignment_id', 'user_id');
+    }
 }

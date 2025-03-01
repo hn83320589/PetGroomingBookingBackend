@@ -16,7 +16,14 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        User::destroy($id);
+        // 只有role是管理員與店員才可以刪除使用者
+        if (!Auth::user()->hasAnyRole(['管理員', '店員'])) {
+            return response()->json([
+                'message' => '權限不足',
+            ], 403);
+        }
+
+        User::find($id)->delete();
 
         return response()->json([
             'status' => 'success',
@@ -72,7 +79,7 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors(),
             ], 400);
         }
 
@@ -159,7 +166,7 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors(),
             ], 400);
         }
 
@@ -208,7 +215,7 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors(),
             ], 400);
         }
 

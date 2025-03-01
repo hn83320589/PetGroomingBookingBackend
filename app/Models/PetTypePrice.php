@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- *
+ * 
  *
  * @property int $pet_type_id
  * @property int $tier_level 等級
  * @property int $extra_price 加購價
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\TFactory|null $use_factory
+ * @property-read \App\Models\PetType $petType
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice query()

@@ -37,7 +37,7 @@ class DailyTimeSlotController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors(),
             ], 400);
         }
 
@@ -84,7 +84,7 @@ class DailyTimeSlotController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors(),
             ], 400);
         }
 
@@ -157,7 +157,7 @@ class DailyTimeSlotController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => $validator->errors()->first(),
+                'message' => $validator->errors(),
             ], 400);
         }
 

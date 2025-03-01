@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
- *
+ * 
  *
  * @property int $id
  * @property string $name
@@ -20,13 +20,23 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserTimeSlotAssignment> $UserTimeSlotAssignments
+ * @property-read int|null $user_time_slot_assignments_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Passport\Client> $clients
+ * @property-read int|null $clients_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DailyTimeSlot> $dailyTimeSlots
+ * @property-read int|null $daily_time_slots_count
  * @property-read \App\Models\TFactory|null $use_factory
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Permission> $permissions
  * @property-read int|null $permissions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Pet> $pets
+ * @property-read int|null $pets_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role> $roles
  * @property-read int|null $roles_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Passport\Token> $tokens
+ * @property-read int|null $tokens_count
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
@@ -87,6 +97,11 @@ class User extends Authenticatable
     public function dailyTimeSlots()
     {
         return $this->hasManyThrough(DailyTimeSlot::class, UserTimeSlotAssignment::class, 'user_id', 'id', 'id', 'daily_time_slot_id');
+    }
+
+    public function pets()
+    {
+        return $this->hasMany(Pet::class, 'user_id', 'id');
     }
 
     /**

@@ -6,13 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- *
+ * 
  *
  * @property int $id
  * @property string $slot_date 日期
  * @property string $slot_time 時段
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserTimeSlotAssignment> $UserTimeSlotAssignments
+ * @property-read int|null $user_time_slot_assignments_count
+ * @property-read \App\Models\TFactory|null $use_factory
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PetAppointmentDetail> $petAppointmentDetails
+ * @property-read int|null $pet_appointment_details_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
+ * @property-read int|null $users_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyTimeSlot newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyTimeSlot newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DailyTimeSlot query()

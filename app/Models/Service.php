@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- *
+ * 
  *
  * @property int $id
  * @property string $name
@@ -16,6 +16,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property int $has_bath_products
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\TFactory|null $use_factory
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PetAppointment> $petAppointments
+ * @property-read int|null $pet_appointments_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PetType> $petType
+ * @property-read int|null $pet_type_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PetTypePrice> $petTypePrices
+ * @property-read int|null $pet_type_prices_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Pet> $pets
+ * @property-read int|null $pets_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ServiceDescription> $serviceDescriptions
+ * @property-read int|null $service_descriptions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserTimeSlotAssignment> $userTimeSlotAssignments
+ * @property-read int|null $user_time_slot_assignments_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Service newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Service newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Service query()

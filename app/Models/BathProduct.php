@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- *
+ * 
  *
  * @property int $id
  * @property string $name
@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string|null $description
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\TFactory|null $use_factory
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PetAppointment> $petAppointments
+ * @property-read int|null $pet_appointments_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BathProduct newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BathProduct newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BathProduct query()
@@ -32,4 +35,8 @@ class BathProduct extends Model {
      * @var array
      */
     protected $hidden = ['created_at', 'updated_at'];
+
+    public function petAppointments() {
+        return $this->hasMany(PetAppointment::class);
+    }
 }

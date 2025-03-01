@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "460e71ee5e2cc1d792d870ecee127639",
+    "content-hash": "f83fc6fa3c70eb03a2ddf31b239b2372",
     "packages": [
         {
             "name": "brick/math",
@@ -1401,16 +1401,16 @@
         },
         {
             "name": "laravel/passport",
-            "version": "v12.4.1",
+            "version": "v12.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/passport.git",
-                "reference": "e9959e07f751ae4a8ad102d5cb51cbe211181ec3"
+                "reference": "65a885607b62d361aedaeb10a946bc6b5a954262"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/passport/zipball/e9959e07f751ae4a8ad102d5cb51cbe211181ec3",
-                "reference": "e9959e07f751ae4a8ad102d5cb51cbe211181ec3",
+                "url": "https://api.github.com/repos/laravel/passport/zipball/65a885607b62d361aedaeb10a946bc6b5a954262",
+                "reference": "65a885607b62d361aedaeb10a946bc6b5a954262",
                 "shasum": ""
             },
             "require": {
@@ -1473,7 +1473,7 @@
                 "issues": "https://github.com/laravel/passport/issues",
                 "source": "https://github.com/laravel/passport"
             },
-            "time": "2025-01-28T15:14:23+00:00"
+            "time": "2025-02-12T16:11:33+00:00"
         },
         {
             "name": "laravel/prompts",
@@ -4155,16 +4155,16 @@
         },
         {
             "name": "spatie/laravel-permission",
-            "version": "6.13.0",
+            "version": "6.15.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-permission.git",
-                "reference": "bb3ad222d65ec804c219cc52a8b54f5af2e1636a"
+                "reference": "86074fcfd127f9fa7bcdf550b7c938e3beb0d65f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/bb3ad222d65ec804c219cc52a8b54f5af2e1636a",
-                "reference": "bb3ad222d65ec804c219cc52a8b54f5af2e1636a",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/86074fcfd127f9fa7bcdf550b7c938e3beb0d65f",
+                "reference": "86074fcfd127f9fa7bcdf550b7c938e3beb0d65f",
                 "shasum": ""
             },
             "require": {
@@ -4226,7 +4226,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-permission/issues",
-                "source": "https://github.com/spatie/laravel-permission/tree/6.13.0"
+                "source": "https://github.com/spatie/laravel-permission/tree/6.15.0"
             },
             "funding": [
                 {
@@ -4234,7 +4234,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-02-05T15:42:48+00:00"
+            "time": "2025-02-17T19:18:01+00:00"
         },
         {
             "name": "symfony/clock",

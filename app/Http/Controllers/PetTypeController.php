@@ -6,7 +6,7 @@ use App\Models\PetType;
 use Illuminate\Http\Request;
 
 class PetTypeController extends Controller {
-    
+
     /**
      * @param $e
      */
@@ -26,7 +26,7 @@ class PetTypeController extends Controller {
         foreach ($petTypes as $petType) {
             $petType->extra_price = $petType->petTypePrices->mapWithKeys(function ($petTypePrice) {
                 // 將等級與加購價組成陣列，等級為 key，加購價為 value
-                return [$petTypePrice->tier_level => $petTypePrice->extra_price];
+                return [$petTypePrice->service_id => $petTypePrice->extra_price];
             })->toArray();
 
             // 移除不需要的欄位

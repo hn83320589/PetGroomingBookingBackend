@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int $daily_time_slot_id 時程id
@@ -49,5 +49,10 @@ class UserTimeSlotAssignment extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function petAppointmentDetail()
+    {
+        return $this->belongsTo(PetAppointmentDetail::class, 'id', 'user_time_slot_assignment_id');
     }
 }

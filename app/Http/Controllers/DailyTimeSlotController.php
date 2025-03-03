@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\DailyTimeSlot;
 use Illuminate\Support\Carbon;
@@ -63,21 +64,29 @@ class DailyTimeSlotController extends Controller
     {
         // 驗證參數，傳入年跟月的資料，年為避填，月為必填
         $rules = [
-            'year'  => [
+            'date'    => [
                 'required',
-                'date_format:Y',
+                'date',
             ],
-            'month' => [
+            'user_id' => [
                 'required',
-                'date_format:m',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    // 檢查user_id是不是店員
+                    $user = User::find($value);
+
+                    if (!$user->hasAnyRole(['店員'])) {
+                        $fail('使用者不是店員');
+                    }
+                },
             ],
         ];
 
         $messages = [
-            'year.required'     => '年份為必填',
-            'month.required'    => '月份為必填',
-            'year.date_format'  => '年份格式錯誤',
-            'month.date_format' => '月份格式錯誤',
+            'date.required'    => '日期為必填',
+            'date.date'        => '日期格式錯誤',
+            'user_id.required' => '使用者編號為必填',
+            'user_id.exists'   => '使用者編號不存在',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -88,23 +97,27 @@ class DailyTimeSlotController extends Controller
             ], 400);
         }
 
-        // 取得年月
-        $year  = $request->input('year');
-        $month = $request->input('month', null);
+        // 撈出使用者的時間槽位，並排除掉已有的時間槽位
+        $timeSlots = DailyTimeSlot::where('slot_date', $request->input('date'))
+            ->whereHas('UserTimeSlotAssignments', function ($query) use ($request) {
+                $query->where('user_id', $request->input('user_id'));
+            })->whereDoesntHave('petAppointmentDetails')
+            ->with('UserTimeSlotAssignments')
+            ->get(['id', 'slot_date', 'slot_time'])
+            ->map(function ($timeSlot) {
+                $userTimeSlotAssignmentId = $timeSlot->userTimeSlotAssignments->first()->id;
 
-        // 展開日期區間，沒有月份則展開一年的日期區間，有月份則展開該月份的日期區間
-        $date  = Carbon::create($year, $month ?? 1, 1);
-        $start = $month ? $date->copy()->startOfMonth() : $date->copy()->startOfYear();
-        $end   = $month ? $date->copy()->endOfMonth() : $date->copy()->endOfYear();
+                return [
+                    'id'                           => $timeSlot->id,
+                    'slot_date'                    => $timeSlot->slot_date,
+                    'slot_time'                    => $timeSlot->slot_time,
+                    'user_time_slot_assignment_id' => $userTimeSlotAssignmentId,
+                ];
+            });
 
-        // 取得dailyTimeSlot資料並排除已經被預約的時段
-        $timeSlots = DailyTimeSlot::whereBetween('slot_date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->whereDoesntHave('petAppointmentDetails')
-            ->get();
-
-        // 整理取得的資料，結構為 [ '日期' => [ '時段1', '時段2', ... ] ]
+        // 整理取得的資料，結構為 [ '日期' => [ user_time_slot_assignment_id => '時段1', user_time_slot_assignment_id => '時段2', ... ] ]
         $timeSlots = $timeSlots->groupBy('slot_date')->map(function ($timeSlots) {
-            return $timeSlots->pluck('slot_time')->toArray();
+            return $timeSlots->pluck('slot_time', 'user_time_slot_assignment_id');
         });
 
         return response()->json([

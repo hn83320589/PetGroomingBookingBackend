@@ -37,7 +37,7 @@ class PetController extends Controller
      */
     public function destroy(string $id)
     {
-// 顧客要先檢查是不是自己的寵物，不是則不能刪除
+        // 顧客要先檢查是不是自己的寵物，不是則不能刪除
         if ($this->loginRole == 0) {
             $pet = $this->user->pets()->find($id);
             if (!$pet) {
@@ -60,7 +60,7 @@ class PetController extends Controller
      */
     public function index()
     {
-//顧客撈出自己的寵物清單，店員則撈出全部寵物清單
+        //顧客撈出自己的寵物清單，店員則撈出全部寵物清單
         if ($this->loginRole == 0) {
             $pets = $this->user->pets;
         } else {
@@ -78,7 +78,7 @@ class PetController extends Controller
      */
     public function show(string $id)
     {
-// 顧客要先檢查是不是自己的寵物，不是則不能查看
+        // 顧客要先檢查是不是自己的寵物，不是則不能查看
         if ($this->loginRole == 0) {
             $pet = $this->user->pets()->find($id);
             if (!$pet) {
@@ -125,6 +125,9 @@ class PetController extends Controller
             'user_id'     => [
                 'exists:users,id',
             ],
+            'is_default'  => [
+                'boolean',
+            ],
         ];
 
         $messages = [
@@ -138,6 +141,7 @@ class PetController extends Controller
             'birth_date.date'      => '生日格式錯誤',
             'weight.numeric'       => '體重格式錯誤',
             'user_id.exists'       => '飼主不存在',
+            'is_default.boolean'   => '是否為預設格式錯誤',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -148,9 +152,14 @@ class PetController extends Controller
             ], 400);
         }
 
-// 顧客寵物的資料user_id只能是自己，店員可以幫其他顧客新增
+        // 顧客寵物的資料user_id只能是自己，店員可以幫其他顧客新增
         if ($this->loginRole == 0) {
             $request->merge(['user_id' => $this->user->id]);
+        }
+
+        // 如果is_default = true，則將其他寵物的is_default改為false
+        if($request->is_default == true){
+            Pet::where('user_id', $request->user_id)->update(['is_default' => false]);
         }
 
         $pet = Pet::create($request->all());
@@ -186,6 +195,9 @@ class PetController extends Controller
             'user_id'     => [
                 'exists:users,id',
             ],
+            'is_default'  => [
+                'boolean',
+            ],
         ];
 
         $messages = [
@@ -195,6 +207,7 @@ class PetController extends Controller
             'birth_date.date'    => '生日格式錯誤',
             'weight.numeric'     => '體重格式錯誤',
             'user_id.exists'     => '飼主不存在',
+            'is_default.boolean' => '是否為預設格式錯誤',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -216,6 +229,11 @@ class PetController extends Controller
             return response()->json([
                 'message' => '找不到資料',
             ], 404);
+        }
+
+        // 如果is_default = true，則將其他寵物的is_default改為false
+        if($request->is_default == true){
+            Pet::where('user_id', $request->user_id)->update(['is_default' => false]);
         }
 
         $pet->update($request->all());

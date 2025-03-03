@@ -116,8 +116,18 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
+        if($user->hasAnyRole(['管理員', '店員'])) {
+            return response()->json([
+                'data' => $user->load(['roles', 'userTimeSlotAssignments']),
+            ]);
+        } else {
+            return response()->json([
+                'data' => $user->load(['roles', 'pets']),
+            ]);
+        }
+
         return response()->json([
-            'data' => $user->load('roles'),
+            'data' => $user,
         ]);
     }
 

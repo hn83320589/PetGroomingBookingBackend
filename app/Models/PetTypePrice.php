@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * 
  *
  * @property int $pet_type_id
- * @property int $tier_level 等級
+ * @property int $service_id 等級
  * @property int $extra_price 加購價
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice whereExtraPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice wherePetTypeId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice whereTierLevel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice whereServiceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetTypePrice whereUpdatedAt($value)
  * @mixin \Eloquent
  */

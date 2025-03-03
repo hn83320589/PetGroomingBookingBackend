@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pet;
+use App\Models\Service;
+use App\Models\BathProduct;
 use Illuminate\Http\Request;
 use App\Models\PetAppointment;
 use Illuminate\Support\Facades\Auth;
@@ -130,6 +132,23 @@ class PetAppointmentController extends Controller
         $petAppointmentDetails = $request->pet_appointment_details;
         unset($request['pet_appointment_details']);
 
+        // 計算price
+        $price        = 0;
+        $serviceId    = $request->service_id;
+        $servicePrice = Service::find($serviceId)->price;
+        $petTypePrice = Pet::find($request->pet_id)->petTypePrices()->where('service_id', $serviceId)->first();
+        $price        = $servicePrice + $petTypePrice->price;
+
+        if ($request->has('bath_product_id')) {
+            $bathProductPrice  = BathProduct::find($request->bath_product_id)->price;
+            $price            += $bathProductPrice;
+        }
+
+        // 與前端傳進來的不同以後端的計算為主
+        if ($request->price != $price) {
+            $request['price'] = $price;
+        }
+
         $petAppointment = PetAppointment::create($request->all());
 
         $petAppointment->petAppointmentDetail()->createMany($petAppointmentDetails);
@@ -198,6 +217,23 @@ class PetAppointmentController extends Controller
             return response()->json([
                 'message' => '找不到資料',
             ], 404);
+        }
+
+        // 計算price
+        $price        = 0;
+        $serviceId    = $request->service_id;
+        $servicePrice = Service::find($serviceId)->price;
+        $petTypePrice = Pet::find($request->pet_id)->petTypePrices()->where('service_id', $serviceId)->first();
+        $price        = $servicePrice + $petTypePrice->price;
+
+        if ($request->has('bath_product_id')) {
+            $bathProductPrice  = BathProduct::find($request->bath_product_id)->price;
+            $price            += $bathProductPrice;
+        }
+
+        // 與前端傳進來的不同以後端的計算為主
+        if ($request->price != $price) {
+            $request['price'] = $price;
         }
 
         $petAppointment->update($request->all());

@@ -14,6 +14,25 @@ Route::post('login', [UserController::class, 'login']);
 Route::get('petsCategory', [PetTypeController::class, 'index']);
 Route::get('services', [ServiceController::class, 'index']);
 Route::get('dailyTimeSlots', [DailyTimeSlotController::class, 'index']);
+Route::get('statusList', function () {
+    return response()->json([
+        'data' => [
+            'booked'    => '預約中',
+            'completed' => '已完成',
+            'cancelled' => '已取消',
+        ],
+    ]);
+});
+Route::get('genderList', function () {
+    //'male','female','unknown'
+    return response()->json([
+        'data' => [
+            'male'    => '公',
+            'female'  => '母',
+            'unknown' => '未知',
+        ],
+    ]);
+});
 
 Route::middleware('auth:api')->group(function () {
     ### 使用者相關API ###
@@ -37,7 +56,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('appointments', [PetAppointmentController::class, 'store']);
     Route::delete('appointments/{id}', [PetAppointmentController::class, 'destroy']);
     Route::put('appointments/{id}', [PetAppointmentController::class, 'update']);
-
 });
 
 Route::get('test', function () {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int $pet_appointment_id
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read int|null $daily_time_slots_count
  * @property-read \App\Models\TFactory|null $use_factory
  * @property-read \App\Models\PetAppointment $petAppointment
- * @property-read \App\Models\UserTimeSlotAssignment $userTimeSlotAssignment
+ * @property-read \App\Models\UserTimeSlotAssignment $userTimeSlotier_leveltAssignment
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
  * @property-read int|null $users_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PetAppointmentDetail newModelQuery()
@@ -46,13 +46,13 @@ class PetAppointmentDetail extends Model
         return $this->belongsTo(UserTimeSlotAssignment::class, 'user_time_slot_assignment_id', 'id');
     }
 
-    public function dailyTimeSlots()
+    public function dailyTimeSlot()
     {
-        return $this->hasManyThrough(DailyTimeSlot::class, UserTimeSlotAssignment::class, 'id', 'id', 'user_time_slot_assignment_id', 'daily_time_slot_id');
+        return $this->hasOneThrough(DailyTimeSlot::class, UserTimeSlotAssignment::class, 'id', 'id', 'user_time_slot_assignment_id', 'daily_time_slot_id');
     }
 
-    public function users()
+    public function user()
     {
-        return $this->hasManyThrough(User::class, UserTimeSlotAssignment::class, 'id', 'id', 'user_time_slot_assignment_id', 'user_id');
+        return $this->hasOneThrough(User::class, UserTimeSlotAssignment::class, 'id', 'id', 'user_time_slot_assignment_id', 'user_id');
     }
 }

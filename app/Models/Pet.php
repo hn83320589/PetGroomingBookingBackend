@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int $pet_type_id 類型id
@@ -84,7 +84,7 @@ class Pet extends Model
     }
 
     public function petTypePrices() {
-        return $this->hasMany(PetTypePrice::class, 'pet_type_id', 'pet_type_id')->orderBy('tier_level');
+        return $this->hasMany(PetTypePrice::class, 'pet_type_id', 'pet_type_id')->orderBy('service_id');
     }
 
     /**

@@ -158,7 +158,7 @@ class PetController extends Controller
         }
 
         // 如果is_default = true，則將其他寵物的is_default改為false
-        if($request->is_default == true){
+        if ($request->is_default == true) {
             Pet::where('user_id', $request->user_id)->update(['is_default' => false]);
         }
 
@@ -232,7 +232,7 @@ class PetController extends Controller
         }
 
         // 如果is_default = true，則將其他寵物的is_default改為false
-        if($request->is_default == true){
+        if ($request->is_default == true) {
             Pet::where('user_id', $request->user_id)->update(['is_default' => false]);
         }
 

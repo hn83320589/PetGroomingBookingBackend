@@ -65,14 +65,12 @@ class PetAppointmentController extends Controller
             // 驗證
             $rules = [
                 'pet_id' => [
-                    'required',
                     'exists:pets,id',
                 ],
             ];
 
             $messages = [
-                'pet_id.required' => '寵物為必填',
-                'pet_id.exists'   => '寵物不存在',
+                'pet_id.exists' => '寵物不存在',
             ];
 
             $validator = Validator::make($request->all(), $rules, $messages);
@@ -85,10 +83,47 @@ class PetAppointmentController extends Controller
 
             // 顧客只能看到自己的預約
             if ($this->loginRole == 0) {
-                $appointments = PetAppointment::where('pet_id', $request->pet_id)
-                    ->whereHas('pet', function ($query) {
+                // 沒pet_id就撈該名顧客全部資料
+                if ($request->has('pet_id')) {
+                    $appointments = PetAppointment::where('pet_id', $request->pet_id)
+                        ->whereHas('pet', function ($query) {
+                            $query->where('user_id', $this->user->id);
+                        })->get();
+                } else {
+                    $appointments = PetAppointment::whereHas('pet', function ($query) {
                         $query->where('user_id', $this->user->id);
                     })->get();
+                }
+            } else {
+                $appointments = PetAppointment::all();
+            }
+
+            // 先檢查appointments是否有日期小於今天的booked資料，有就改成timeout
+            $today               = now()->format('Y-m-d');
+            $timeoutAppointments = $appointments->where('status', 'booked')
+                ->filter(function ($appointment) use ($today) {
+                    return $appointment->petAppointmentDetail->contains(function ($detail) use ($today) {
+                        return optional($detail->dailyTimeSlot)->date < $today;
+                    });
+                });
+
+            foreach ($timeoutAppointments as $appointment) {
+                $appointment->update(['status' => 'timeout']);
+            }
+
+            // 顧客只能看到自己的預約
+            if ($this->loginRole == 0) {
+                // 沒pet_id就撈該名顧客全部資料
+                if ($request->has('pet_id')) {
+                    $appointments = PetAppointment::where('pet_id', $request->pet_id)
+                        ->whereHas('pet', function ($query) {
+                            $query->where('user_id', $this->user->id);
+                        })->get();
+                } else {
+                    $appointments = PetAppointment::whereHas('pet', function ($query) {
+                        $query->where('user_id', $this->user->id);
+                    })->get();
+                }
             } else {
                 $appointments = PetAppointment::all();
             }
@@ -108,7 +143,7 @@ class PetAppointmentController extends Controller
                         return null;
                     }
                     $firstDetail = $appointment->petAppointmentDetail->first();
-                    return optional(optional($firstDetail)->dailyTimeSlot)->date;
+                    return optional(optional($firstDetail)->dailyTimeSlot)->slot_date;
                 })
                 ->map(function ($appointment) {
                     // 檢查是否有詳情資料
@@ -121,10 +156,11 @@ class PetAppointmentController extends Controller
 
                     return [
                         'id'                     => $appointment->id,
-                        'appointment_date'       => optional(optional($firstDetail)->dailyTimeSlot)->date,
-                        'appointment_start_time' => optional(optional($firstDetail)->dailyTimeSlot)->start_time,
-                        'appointment_end_time'   => optional(optional($lastDetail)->dailyTimeSlot)->end_time,
-                        'service_name'           => optional($appointment->service)->name,
+                        'appointment_date'       => optional(optional($firstDetail)->dailyTimeSlot)->slot_date,
+                        'appointment_start_time' => optional(optional($firstDetail)->dailyTimeSlot)->slot_time,
+                        'appointment_end_time'   => optional(optional($lastDetail)->dailyTimeSlot)->slot_time,
+                        'service_name'           => optional($appointment->service)->display_name,
+                        'bath_product_name'      => optional($appointment->bathProduct)->name,
                         'pet_name'               => optional($appointment->pet)->name,
                         'price'                  => $appointment->price,
                         'status'                 => $appointment->status,
@@ -136,14 +172,51 @@ class PetAppointmentController extends Controller
                 ->values(); // 重設索引
 
             // 已完成或取消的資料
-            $completedAppointments = $appointments->where('status', '!=', 'booked')
+            $completedAppointments = $appointments->where(function ($appointment) {
+                return in_array($appointment->status, ['completed', 'canceled']);
+            })->sortByDesc(function ($appointment) {
+                // 倒序排序
+                if ($appointment->petAppointmentDetail->isEmpty()) {
+                    return null;
+                }
+                $firstDetail = $appointment->petAppointmentDetail->first();
+                return optional(optional($firstDetail)->dailyTimeSlot)->slot_date;
+            })
+                ->map(function ($appointment) {
+                    // 檢查是否有詳情資料
+                    if ($appointment->petAppointmentDetail->isEmpty()) {
+                        return null;
+                    }
+
+                    $firstDetail = $appointment->petAppointmentDetail->first();
+                    $lastDetail  = $appointment->petAppointmentDetail->last();
+
+                    return [
+                        'id'                     => $appointment->id,
+                        'appointment_date'       => optional(optional($firstDetail)->dailyTimeSlot)->slot_date,
+                        'appointment_start_time' => optional(optional($firstDetail)->dailyTimeSlot)->slot_time,
+                        'appointment_end_time'   => optional(optional($lastDetail)->dailyTimeSlot)->slot_time,
+                        'service_name'           => optional($appointment->service)->display_name,
+                        'bath_product_name'      => optional($appointment->bathProduct)->name,
+                        'pet_name'               => optional($appointment->pet)->name,
+                        'price'                  => $appointment->price,
+                        'status'                 => $appointment->status,
+                        'service_staff'          => optional(optional($firstDetail)->user)->name,
+                        'customer_name'          => optional(optional($appointment->pet)->user)->name,
+                    ];
+                })
+                ->filter()
+                ->values();
+
+            // 撈取逾時的預約
+            $timeoutAppointments = $appointments->where('status', 'timeout')
                 ->sortByDesc(function ($appointment) {
                     // 倒序排序
                     if ($appointment->petAppointmentDetail->isEmpty()) {
                         return null;
                     }
                     $firstDetail = $appointment->petAppointmentDetail->first();
-                    return optional(optional($firstDetail)->dailyTimeSlot)->date;
+                    return optional(optional($firstDetail)->dailyTimeSlot)->slot_date;
                 })
                 ->map(function ($appointment) {
                     // 檢查是否有詳情資料
@@ -156,10 +229,11 @@ class PetAppointmentController extends Controller
 
                     return [
                         'id'                     => $appointment->id,
-                        'appointment_date'       => optional(optional($firstDetail)->dailyTimeSlot)->date,
-                        'appointment_start_time' => optional(optional($firstDetail)->dailyTimeSlot)->start_time,
-                        'appointment_end_time'   => optional(optional($lastDetail)->dailyTimeSlot)->end_time,
-                        'service_name'           => optional($appointment->service)->name,
+                        'appointment_date'       => optional(optional($firstDetail)->dailyTimeSlot)->slot_date,
+                        'appointment_start_time' => optional(optional($firstDetail)->dailyTimeSlot)->slot_time,
+                        'appointment_end_time'   => optional(optional($lastDetail)->dailyTimeSlot)->slot_time,
+                        'service_name'           => optional($appointment->service)->display_name,
+                        'bath_product_name'      => optional($appointment->bathProduct)->name,
                         'pet_name'               => optional($appointment->pet)->name,
                         'price'                  => $appointment->price,
                         'status'                 => $appointment->status,
@@ -173,6 +247,7 @@ class PetAppointmentController extends Controller
             return response()->json([
                 'booked'    => $bookedAppointments,
                 'completed' => $completedAppointments,
+                'timeout'   => $timeoutAppointments,
             ]);
         } catch (\Exception $e) {
             \Log::error('獲取預約列表出錯: '.$e->getMessage());
@@ -216,6 +291,39 @@ class PetAppointmentController extends Controller
                 'required',
                 'exists:user_time_slot_assignments,id',
             ],
+            'pet.id'                    => [
+                'exists:pets,id',
+            ],
+            'pet.name'                  => [
+                'max:255',
+            ],
+            'pet.pet_type_id'           => [
+                'exists:pet_types,id',
+            ],
+            'pet.weight'                => [
+                'nullable',
+                'numeric',
+            ],
+            'pet.birth_date'            => [
+                'nullable',
+                'date',
+            ],
+            'pet.gender'                => [
+                'nullable',
+                'in:male,female,unknown',
+            ],
+            'pet.is_default'            => [
+                'boolean',
+            ],
+            'pet.user_id'               => [
+                'exists:users,id',
+            ],
+            'name'                      => [
+                'max:255',
+            ],
+            'phone'                     => [
+                'phone:Taiwan',
+            ],
         ];
 
         $messages = [
@@ -232,6 +340,14 @@ class PetAppointmentController extends Controller
             'pet_appointment_details.*.required' => '預約時段為必填',
             'pet_appointment_details.*.exists'   => '預約時段不存在',
             'customer_id.exists'                 => '顧客不存在',
+            'pet.id.exists'                      => '寵物不存在',
+            'pet.name.max'                       => '名字最多255個字元',
+            'pet.pet_type_id.exists'             => '寵物類型不存在',
+            'pet.weight.numeric'                 => '體重格式錯誤',
+            'pet.birth_date.date'                => '出生日期格式錯誤',
+            'pet.gender.in'                      => '性別必須是 male, female 或 unknown',
+            'pet.is_default.boolean'             => '是否為預設必須是布林值',
+            'pet.user_id.exists'                 => '用戶不存在',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -245,6 +361,27 @@ class PetAppointmentController extends Controller
         DB::beginTransaction();
 
         try {
+            // 檢查pet是否有id參數，沒有就新增，有就更新
+            if ($request->has('pet.id')) {
+                $pet = Pet::find($request->pet['id']);
+
+                if (!$pet) {
+                    return response()->json([
+                        'message' => '找不到寵物資料',
+                    ], 404);
+                }
+
+                $pet->update($request->pet);
+            } else {
+                // 顧客只能看到自己的預約
+                if ($this->loginRole == 0) {
+                    $request->merge(['user_id' => $this->user->id]);
+                }
+
+                $pet = Pet::create($request->pet);
+                $request->merge(['pet_id' => $pet->id]);
+            }
+
             $petAppointmentDetails = $request->pet_appointment_details;
             unset($request['pet_appointment_details']);
 
@@ -267,13 +404,19 @@ class PetAppointmentController extends Controller
 
             $petAppointment = PetAppointment::create($request->all());
 
-            $petAppointmentDetails = array_map(function ($petAppointmentDetail) {
+            $petAppointmentDetails  = array_map(function ($petAppointmentDetail) {
                 return [
                     'user_time_slot_assignment_id' => $petAppointmentDetail,
                 ];
             }, $petAppointmentDetails);
 
             $petAppointment->petAppointmentDetail()->createMany($petAppointmentDetails);
+
+            // 更新顧客名字與電話
+            $petAppointment->pet->user->update([
+                'name'  => $request->name,
+                'phone' => $request->phone,
+            ]);
 
             DB::commit();
 
@@ -297,18 +440,16 @@ class PetAppointmentController extends Controller
     {
         // 驗證
         $rules = [
-            'pet_id'                                                 => [
-                'required',
-                'exists:pets,id',
-            ],
             'service_id'                                             => [
                 'required',
                 'exists:services,id',
             ],
             'price'                                                  => [
+                'nullable',
                 'numeric',
             ],
             'bath_product_id'                                        => [
+                'nullable',
                 'exists:bath_products,id',
             ],
             'pet_appointment_details'                                => [
@@ -319,11 +460,42 @@ class PetAppointmentController extends Controller
                 'required',
                 'exists:user_time_slot_assignments,id',
             ],
+            'pet.id'                                                 => [
+                'exists:pets,id',
+            ],
+            'pet.name'                                               => [
+                'max:255',
+            ],
+            'pet.pet_type_id'                                        => [
+                'exists:pet_types,id',
+            ],
+            'pet.weight'                                             => [
+                'nullable',
+                'numeric',
+            ],
+            'pet.birth_date'                                         => [
+                'nullable',
+                'date',
+            ],
+            'pet.gender'                                             => [
+                'nullable',
+                'in:male,female,unknown',
+            ],
+            'pet.is_default'                                         => [
+                'boolean',
+            ],
+            'pet.user_id'                                            => [
+                'exists:users,id',
+            ],
+            'name'                                                   => [
+                'max:255',
+            ],
+            'phone'                                                  => [
+                'phone:Taiwan',
+            ],
         ];
 
         $messages = [
-            'pet_id.required'                                                 => '寵物為必填',
-            'pet_id.exists'                                                   => '寵物不存在',
             'service_id.required'                                             => '服務為必填',
             'service_id.exists'                                               => '服務不存在',
             'price.numeric'                                                   => '價格格式錯誤',
@@ -332,6 +504,15 @@ class PetAppointmentController extends Controller
             'pet_appointment_details.min'                                     => '預約時段格式錯誤',
             'pet_appointment_details.*.user_time_slot_assignment_id.required' => '預約時段為必填',
             'pet_appointment_details.*.user_time_slot_assignment_id.exists'   => '預約時段不存在',
+            'pet.id.exists'                                                   => '寵物不存在',
+            'pet.name.max'                                                    => '名字最多255個字元',
+            'pet.pet_type_id.exists'                                          => '寵物類型不存在',
+            'pet.weight.numeric'                                              => '體重格式錯誤',
+            'pet.birth_date.date'                                             => '生日格式錯誤',
+            'pet.gender.in'                                                   => '性別格式錯誤',
+            'pet.is_default.boolean'                                          => '是否為預設格式錯誤',
+            'pet.user_id.exists'                                              => '飼主不存在',
+
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -343,8 +524,29 @@ class PetAppointmentController extends Controller
         }
 
         DB::beginTransaction();
-
         try {
+            // 處理寵物
+            // 檢查pet是否有id參數，沒有就新增，有就更新
+            if ($request->has('pet.id')) {
+                $pet = Pet::find($request->pet['id']);
+
+                if (!$pet) {
+                    return response()->json([
+                        'message' => '找不到寵物資料',
+                    ], 404);
+                }
+
+                $pet->update($request->pet);
+            } else {
+                // 顧客只能看到自己的預約
+                if ($this->loginRole == 0) {
+                    $request->merge(['user_id' => $this->user->id]);
+                }
+
+                $pet = Pet::create($request->pet);
+                $request->merge(['pet_id' => $pet->id]);
+            }
+
             $petAppointment = PetAppointment::find($id);
 
             if (!$petAppointment) {
@@ -387,6 +589,12 @@ class PetAppointmentController extends Controller
                 $petAppointment->petAppointmentDetail()->createMany($petAppointmentDetails);
             }
 
+            // 更新顧客名字與電話
+            $petAppointment->pet->user->update([
+                'name'  => $request->name,
+                'phone' => $request->phone,
+            ]);
+
             return response()->json([
                 'message' => '更新成功',
                 'data'    => $petAppointment->load('petAppointmentDetail.dailyTimeSlot'),
@@ -398,5 +606,48 @@ class PetAppointmentController extends Controller
                 'message' => '更新失敗',
             ], 400);
         }
+    }
+
+    /**
+     * @param Request $request
+     * @param $id
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        // 驗證
+        $rules = [
+            'status' => [
+                'required',
+                'in:booked,completed,canceled,timeout',
+            ],
+        ];
+
+        $messages = [
+            'status.required' => '狀態為必填',
+            'status.in'       => '狀態格式錯誤',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors(),
+            ], 400);
+        }
+
+        $petAppointment = PetAppointment::find($id);
+
+        if (!$petAppointment) {
+            return response()->json([
+                'message' => '找不到資料',
+            ], 404);
+        }
+
+        $petAppointment->update($request->all());
+
+        return response()->json([
+            'message' => '更新成功',
+            'data'    => $petAppointment,
+        ]);
     }
 }

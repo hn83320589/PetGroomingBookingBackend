@@ -116,7 +116,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        if($user->hasAnyRole(['管理員', '店員'])) {
+        if ($user->hasAnyRole(['管理員', '店員'])) {
             return response()->json([
                 'data' => $user->load(['roles', 'userTimeSlotAssignments']),
             ]);
@@ -206,19 +206,29 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
         // 驗證參數
         $rules = [
-            'name' => [
-                'required',
+            'name'  => [
+                'nullable',
                 'max:255',
+            ],
+            'email' => [
+                'nullable',
+                'email',
+                'unique:users,email,'.$id,
+            ],
+            'phone' => [
+                'nullable',
             ],
         ];
 
         $messages = [
             'name.required' => '姓名為必填',
             'name.max'      => '姓名最多255個字元',
+            'email.email'   => 'Email格式錯誤',
+            'email.unique'  => 'Email已被使用',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);

@@ -39,6 +39,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('user', [UserController::class, 'show']);
     Route::get('users', [UserController::class, 'index']);
     Route::delete('users/{id}', [UserController::class, 'destroy']);
+    Route::put('users/{id}', [UserController::class, 'update']);
     Route::delete('dailyTimeSlots', [DailyTimeSlotController::class, 'destroy']);
     Route::post('logout', [UserController::class, 'logout']);
 
@@ -56,6 +57,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('appointments', [PetAppointmentController::class, 'store']);
     Route::delete('appointments/{id}', [PetAppointmentController::class, 'destroy']);
     Route::put('appointments/{id}', [PetAppointmentController::class, 'update']);
+    Route::patch('appointments/{id}', [PetAppointmentController::class, 'updateStatus']);
 });
 
 Route::get('test', function () {

@@ -268,7 +268,6 @@ class PetAppointmentController extends Controller
         // 驗證
         $rules = [
             'pet_id'                    => [
-                'required',
                 'exists:pets,id',
             ],
             'service_id'                => [
@@ -292,12 +291,15 @@ class PetAppointmentController extends Controller
                 'exists:user_time_slot_assignments,id',
             ],
             'pet.id'                    => [
+                'nullable',
                 'exists:pets,id',
             ],
             'pet.name'                  => [
+                'required',
                 'max:255',
             ],
             'pet.pet_type_id'           => [
+                'required',
                 'exists:pet_types,id',
             ],
             'pet.weight'                => [
@@ -316,13 +318,14 @@ class PetAppointmentController extends Controller
                 'boolean',
             ],
             'pet.user_id'               => [
+                'nullable',
                 'exists:users,id',
             ],
             'name'                      => [
                 'max:255',
             ],
             'phone'                     => [
-                'phone:Taiwan',
+                'nullable',
             ],
         ];
 
@@ -342,12 +345,15 @@ class PetAppointmentController extends Controller
             'customer_id.exists'                 => '顧客不存在',
             'pet.id.exists'                      => '寵物不存在',
             'pet.name.max'                       => '名字最多255個字元',
+            'pet.name.required'                  => '名字為必填',
+            'pet.pet_type_id.required'           => '寵物類型為必填',
             'pet.pet_type_id.exists'             => '寵物類型不存在',
             'pet.weight.numeric'                 => '體重格式錯誤',
             'pet.birth_date.date'                => '出生日期格式錯誤',
             'pet.gender.in'                      => '性別必須是 male, female 或 unknown',
             'pet.is_default.boolean'             => '是否為預設必須是布林值',
             'pet.user_id.exists'                 => '用戶不存在',
+            'name.max'                           => '名字最多255個字元',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -362,7 +368,7 @@ class PetAppointmentController extends Controller
 
         try {
             // 檢查pet是否有id參數，沒有就新增，有就更新
-            if ($request->has('pet.id')) {
+            if ($request->has('pet.id') && $request->pet['id'] != null) {
                 $pet = Pet::find($request->pet['id']);
 
                 if (!$pet) {
@@ -373,17 +379,26 @@ class PetAppointmentController extends Controller
 
                 $pet->update($request->pet);
             } else {
-                // 顧客只能看到自己的預約
-                if ($this->loginRole == 0) {
-                    $request->merge(['user_id' => $this->user->id]);
+                // 寵物的使用者為空或是沒有，寫入目前登入的使用者
+                if (!$request->has('pet.user_id')) {
+                    // 取得目前的 pet 資料
+                    $pet = $request->pet;
+                    // 修改 user_id
+                    $pet['user_id'] = $this->user->id;
+                    // 將修改後的資料合併回 Request
+                    $request->merge(['pet' => $pet]);
+                }
+
+                if ($request->has('pet.id')) {
+                    // 移除pet.id的欄位
+                    $request->except('pet.id');
                 }
 
                 $pet = Pet::create($request->pet);
-                $request->merge(['pet_id' => $pet->id]);
             }
+            $request->merge(['pet_id' => $pet->id]);
 
             $petAppointmentDetails = $request->pet_appointment_details;
-            unset($request['pet_appointment_details']);
 
             // 計算price
             $price        = 0;
@@ -402,7 +417,10 @@ class PetAppointmentController extends Controller
                 $request['price'] = $price;
             }
 
-            $petAppointment = PetAppointment::create($request->all());
+            $name = $request->name;
+            $phone = $request->phone;
+
+            $petAppointment = PetAppointment::create($request->except(['pet_appointment_details', 'pet', 'name', 'phone']));
 
             $petAppointmentDetails  = array_map(function ($petAppointmentDetail) {
                 return [
@@ -414,8 +432,8 @@ class PetAppointmentController extends Controller
 
             // 更新顧客名字與電話
             $petAppointment->pet->user->update([
-                'name'  => $request->name,
-                'phone' => $request->phone,
+                'name'  => $name ?? $petAppointment->pet->user->name,
+                'phone' => $phone ?? $petAppointment->pet->user->phone,
             ]);
 
             DB::commit();
@@ -460,39 +478,6 @@ class PetAppointmentController extends Controller
                 'required',
                 'exists:user_time_slot_assignments,id',
             ],
-            'pet.id'                                                 => [
-                'exists:pets,id',
-            ],
-            'pet.name'                                               => [
-                'max:255',
-            ],
-            'pet.pet_type_id'                                        => [
-                'exists:pet_types,id',
-            ],
-            'pet.weight'                                             => [
-                'nullable',
-                'numeric',
-            ],
-            'pet.birth_date'                                         => [
-                'nullable',
-                'date',
-            ],
-            'pet.gender'                                             => [
-                'nullable',
-                'in:male,female,unknown',
-            ],
-            'pet.is_default'                                         => [
-                'boolean',
-            ],
-            'pet.user_id'                                            => [
-                'exists:users,id',
-            ],
-            'name'                                                   => [
-                'max:255',
-            ],
-            'phone'                                                  => [
-                'phone:Taiwan',
-            ],
         ];
 
         $messages = [
@@ -504,15 +489,6 @@ class PetAppointmentController extends Controller
             'pet_appointment_details.min'                                     => '預約時段格式錯誤',
             'pet_appointment_details.*.user_time_slot_assignment_id.required' => '預約時段為必填',
             'pet_appointment_details.*.user_time_slot_assignment_id.exists'   => '預約時段不存在',
-            'pet.id.exists'                                                   => '寵物不存在',
-            'pet.name.max'                                                    => '名字最多255個字元',
-            'pet.pet_type_id.exists'                                          => '寵物類型不存在',
-            'pet.weight.numeric'                                              => '體重格式錯誤',
-            'pet.birth_date.date'                                             => '生日格式錯誤',
-            'pet.gender.in'                                                   => '性別格式錯誤',
-            'pet.is_default.boolean'                                          => '是否為預設格式錯誤',
-            'pet.user_id.exists'                                              => '飼主不存在',
-
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -525,28 +501,6 @@ class PetAppointmentController extends Controller
 
         DB::beginTransaction();
         try {
-            // 處理寵物
-            // 檢查pet是否有id參數，沒有就新增，有就更新
-            if ($request->has('pet.id')) {
-                $pet = Pet::find($request->pet['id']);
-
-                if (!$pet) {
-                    return response()->json([
-                        'message' => '找不到寵物資料',
-                    ], 404);
-                }
-
-                $pet->update($request->pet);
-            } else {
-                // 顧客只能看到自己的預約
-                if ($this->loginRole == 0) {
-                    $request->merge(['user_id' => $this->user->id]);
-                }
-
-                $pet = Pet::create($request->pet);
-                $request->merge(['pet_id' => $pet->id]);
-            }
-
             $petAppointment = PetAppointment::find($id);
 
             if (!$petAppointment) {

@@ -20,6 +20,7 @@ Route::get('statusList', function () {
             'booked'    => '預約中',
             'completed' => '已完成',
             'cancelled' => '已取消',
+            'timeout'   => '逾時',
         ],
     ]);
 });

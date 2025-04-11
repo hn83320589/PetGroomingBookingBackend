@@ -103,7 +103,7 @@ class PetAppointmentController extends Controller
             $timeoutAppointments = $appointments->where('status', 'booked')
                 ->filter(function ($appointment) use ($today) {
                     return $appointment->petAppointmentDetail->contains(function ($detail) use ($today) {
-                        return optional($detail->dailyTimeSlot)->date < $today;
+                        return optional($detail->dailyTimeSlot)->slot_date < $today;
                     });
                 });
 
@@ -268,6 +268,7 @@ class PetAppointmentController extends Controller
         // 驗證
         $rules = [
             'pet_id'                    => [
+                'nullable',
                 'exists:pets,id',
             ],
             'service_id'                => [
@@ -279,6 +280,7 @@ class PetAppointmentController extends Controller
                 'numeric',
             ],
             'bath_product_id'           => [
+                'nullable',
                 'exists:bath_products,id',
             ],
             'pet_appointment_details'   => [
@@ -295,11 +297,13 @@ class PetAppointmentController extends Controller
                 'exists:pets,id',
             ],
             'pet.name'                  => [
-                'required',
+                // 沒有id就必填
+                'required_without:pet.id',
                 'max:255',
             ],
             'pet.pet_type_id'           => [
-                'required',
+                // 沒有id就必填
+                'required_without:pet.id',
                 'exists:pet_types,id',
             ],
             'pet.weight'                => [
@@ -322,6 +326,7 @@ class PetAppointmentController extends Controller
                 'exists:users,id',
             ],
             'name'                      => [
+                'nullable',
                 'max:255',
             ],
             'phone'                     => [
@@ -330,7 +335,6 @@ class PetAppointmentController extends Controller
         ];
 
         $messages = [
-            'pet_id.required'                    => '寵物為必填',
             'pet_id.exists'                      => '寵物不存在',
             'service_id.required'                => '服務為必填',
             'service_id.exists'                  => '服務不存在',
@@ -407,7 +411,7 @@ class PetAppointmentController extends Controller
             $petTypePrice = Pet::find($request->pet_id)->petTypePrices()->where('service_id', $serviceId)->first();
             $price        = $servicePrice + $petTypePrice->price;
 
-            if ($request->has('bath_product_id')) {
+            if ($request->has('bath_product_id') && $request->bath_product_id != null) {
                 $bathProductPrice  = BathProduct::find($request->bath_product_id)->price;
                 $price            += $bathProductPrice;
             }

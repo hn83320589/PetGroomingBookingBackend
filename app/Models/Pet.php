@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property int $user_id 飼主id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\TFactory|null $use_factory
+ * @property-read \Illuminate\Database\Eloquent\Factories\Factory|null $factory
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PetAppointment> $petAppointments
  * @property-read int|null $pet_appointments_count
  * @property-read \App\Models\User $petParent
@@ -54,6 +54,9 @@ class Pet extends Model
      */
     protected $guarded = [];
 
+    /**
+     * @return mixed
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
@@ -83,7 +86,11 @@ class Pet extends Model
         return $this->belongsTo(PetType::class, 'pet_type_id', 'id');
     }
 
-    public function petTypePrices() {
+    /**
+     * @return mixed
+     */
+    public function petTypePrices()
+    {
         return $this->hasMany(PetTypePrice::class, 'pet_type_id', 'pet_type_id')->orderBy('service_id');
     }
 
@@ -101,5 +108,23 @@ class Pet extends Model
     public function userTimeSlotAssignments()
     {
         return $this->hasManyThrough(UserTimeSlotAssignment::class, PetAppointment::class, 'pet_id', 'id', 'id', 'user_time_slot_assignments_id');
+    }
+
+    // 刪除時，連帶刪除預約紀錄
+    protected static function boot()
+    {
+        parent::boot();
+
+        // 刪除寵物時，連帶刪除預約紀錄
+        static::deleting(function ($pet) {
+            // 刪除預約紀錄時，連帶刪除預約紀錄明細
+            // 先刪除預約紀錄明細
+            $pet->petAppointments()->each(function ($petAppointment) {
+                $petAppointment->petAppointmentDetail()->delete();
+            });
+
+            // 再刪除預約紀錄
+            $pet->petAppointments()->delete();
+        });
     }
 }

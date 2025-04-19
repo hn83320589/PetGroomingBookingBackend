@@ -173,7 +173,7 @@ class PetAppointmentController extends Controller
 
             // 已完成或取消的資料
             $completedAppointments = $appointments->where(function ($appointment) {
-                return in_array($appointment->status, ['completed', 'canceled']);
+                return in_array($appointment->status, ['completed', 'cancelled']);
             })->sortByDesc(function ($appointment) {
                 // 倒序排序
                 if ($appointment->petAppointmentDetail->isEmpty()) {
@@ -409,7 +409,7 @@ class PetAppointmentController extends Controller
             $serviceId    = $request->service_id;
             $servicePrice = Service::find($serviceId)->price;
             $petTypePrice = Pet::find($request->pet_id)->petTypePrices()->where('service_id', $serviceId)->first();
-            $price        = $servicePrice + $petTypePrice->price;
+            $price        = $servicePrice + $petTypePrice->extra_price;
 
             if ($request->has('bath_product_id') && $request->bath_product_id != null) {
                 $bathProductPrice  = BathProduct::find($request->bath_product_id)->price;
@@ -576,7 +576,7 @@ class PetAppointmentController extends Controller
         $rules = [
             'status' => [
                 'required',
-                'in:booked,completed,canceled,timeout',
+                'in:booked,completed,cancelled,timeout',
             ],
         ];
 

@@ -291,6 +291,7 @@ class PetAppointmentController extends Controller
             'pet_appointment_details.*' => [
                 'required',
                 'exists:user_time_slot_assignments,id',
+                'unique:pet_appointment_details,user_time_slot_assignment_id',
             ],
             'pet.id'                    => [
                 'nullable',
@@ -346,6 +347,7 @@ class PetAppointmentController extends Controller
             'pet_appointment_details.min'        => '預約時段格式錯誤',
             'pet_appointment_details.*.required' => '預約時段為必填',
             'pet_appointment_details.*.exists'   => '預約時段不存在',
+            'pet_appointment_details.*.unique'   => '預約時段已存在',
             'customer_id.exists'                 => '顧客不存在',
             'pet.id.exists'                      => '寵物不存在',
             'pet.name.max'                       => '名字最多255個字元',
@@ -421,7 +423,7 @@ class PetAppointmentController extends Controller
                 $request['price'] = $price;
             }
 
-            $name = $request->name;
+            $name  = $request->name;
             $phone = $request->phone;
 
             $petAppointment = PetAppointment::create($request->except(['pet_appointment_details', 'pet', 'name', 'phone']));

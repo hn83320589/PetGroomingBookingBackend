@@ -10,6 +10,7 @@ use App\Http\Controllers\PetAppointmentController;
 
 Route::post('register', [UserController::class, 'store']);
 Route::post('login', [UserController::class, 'login']);
+Route::post('google/login', [UserController::class, 'socialiteLogin']);
 
 Route::get('petsCategory', [PetTypeController::class, 'index']);
 Route::get('services', [ServiceController::class, 'index']);

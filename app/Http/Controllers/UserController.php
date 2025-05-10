@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
@@ -125,10 +126,6 @@ class UserController extends Controller
                 'data' => $user->load(['roles', 'pets']),
             ]);
         }
-
-        return response()->json([
-            'data' => $user,
-        ]);
     }
 
     /**
@@ -183,9 +180,10 @@ class UserController extends Controller
         try {
             // 建立使用者
             $user = User::create([
-                'name'     => $request->input('name'),
-                'email'    => $request->input('email'),
-                'password' => Hash::make($request->input('password')),
+                'name'              => $request->input('name'),
+                'email'             => $request->input('email'),
+                'password'          => Hash::make($request->input('password')),
+                'email_verified_at' => date('Y-m-d H:i:s'),
             ]);
 
             // 預設角色為顧客
@@ -253,5 +251,40 @@ class UserController extends Controller
             'status' => 'success',
             'data'   => $user,
         ]);
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function socialiteLogin(Request $request)
+    {
+        #region 驗證
+        $validator = Validator::make($request->all(), [
+            'socialite_token' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'fail',
+                'message' => $validator->errors(),
+            ], 400);
+        }
+        #endregion
+
+        $socialite_token = $request->input('socialite_token'); // 取得google token
+
+        $userInfo = Socialite::driver('google')->userFromToken($socialite_token); // 取得google使用者資訊
+
+        $user = User::updateOrCreate(['socialite_id' => $userInfo->id], array_filter([
+            'name'              => $userInfo->name,
+            'email'             => $userInfo->email,
+            'email_verified_at' => date('Y-m-d H:i:s'),
+            'socialite_id'      => $userInfo->id,
+            'password'          => Hash::make($socialite_token),
+        ]));
+
+        $token = $user->createToken('login');
+
+        return response()->json($token);
     }
 }

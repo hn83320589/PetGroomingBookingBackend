@@ -273,13 +273,33 @@ class UserController extends Controller
 
         $socialite_token = $request->input('socialite_token'); // 取得google token
 
-        $userInfo = Socialite::driver('google')->userFromToken($socialite_token); // 取得google使用者資訊
+        // 建立 Google API Client 物件
+        $client = new \Google_Client([
+            'client_id' => config('services.google.client_id') // 從設定檔讀取 client_id
+        ]);
 
-        $user = User::updateOrCreate(['socialite_id' => $userInfo->id], array_filter([
-            'name'              => $userInfo->name,
-            'email'             => $userInfo->email,
+        // 驗證 ID token
+        $payload = $client->verifyIdToken($socialite_token);
+
+        if (!$payload) {
+            return response()->json([
+                'status'  => 'fail',
+                'message' => '無效的 Google Token',
+            ], 401);
+        }
+
+        // 取得 Google 使用者資訊
+        $userInfo = [
+            'id'    => $payload['sub'],
+            'email' => $payload['email'],
+            'name'  => $payload['name'] ?? $payload['email'],
+        ];
+
+        $user = User::updateOrCreate(['socialite_id' => $userInfo['id']], array_filter([
+            'name'              => $userInfo['name'],
+            'email'             => $userInfo['email'],
             'email_verified_at' => date('Y-m-d H:i:s'),
-            'socialite_id'      => $userInfo->id,
+            'socialite_id'      => $userInfo['id'],
             'password'          => Hash::make($socialite_token),
         ]));
 
